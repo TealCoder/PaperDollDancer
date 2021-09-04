@@ -10,14 +10,16 @@
     // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
 
     
-// SOLID FUCKING GOLD FROM S.O.:
+// From stack overflow, to slow this thing down:
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
     
     
     // the link to your model provided by Teachable Machine export panel
-    const URL = 'http://127.0.0.1:8000/my-pose-model/';
+    //const URL = 'http://127.0.0.1:8000/my-pose-model/';
+    const URL = 'https://tealcoder.github.io/PaperDollDancer/poseStuff1/my-pose-model/';
+
     let model, webcam, ctx, labelContainer, maxPredictions, g_pose;
 
     async function init() {

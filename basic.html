@@ -14,6 +14,30 @@
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+  // More Stack overflow magic:
+  function handleImageUpload() 
+  {
+      var new_image = document.getElementById("image-file").files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        faceImage = new Image();
+        faceImage.src = e.target.result;
+        drawDancer();
+      }
+      reader.readAsDataURL(new_image);
+  }
+  function handleMusicUpload() 
+  {
+      var new_music = document.getElementById("music-file").files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        music = new Audio(e.target.result);
+        //drawDancer();
+        alert("ready")
+      }
+      reader.readAsDataURL(new_music);
+  } 
    
     var [dancer_x, dancer_y] = [0,0];
     var [hx,hy,nx,ny,cx,cy] = [281,120,281,155,281,343];
@@ -26,9 +50,10 @@ function sleep(ms) {
     var ctx;
     var faceImage;
     var music;
+    var running = false;
 
    
-    async function main()
+    async function loadIt()
     {
      faceImage = new Image();
      faceImage.src = './face.jpg'; 
@@ -39,22 +64,32 @@ function sleep(ms) {
       ctx = canvas.getContext("2d");
       
       // Give everything a chance to load
-      // TODO: needs to be triggered by user
       await sleep(1000); 
-      runIt();
+      drawDancer();
+      ctx.fillStyle='black';
+      ctx.font = "30px Arial";
+      ctx.fillText("Click 'Go!' to start", 100, 650);
     }
     
     async function runIt()
     {
+      running = true;
+      var i = 0;
+      music.currentTime = 0;
       music.play()
-      var i = 0
-      while (true)
+      while (running && music.ended == false)
       {
         newPose(somePoses[i++]);
         drawDancer();
         if (i == somePoses.length) i = 0;
         await sleep(1333); // I think we are 110BPM, no, maybe 90
       }
+      music.pause()
+    }
+    
+    function stopIt()
+    {
+      running = false;
     }
       
     function drawDancer()
@@ -162,13 +197,26 @@ var somePoses = [
   </script>
 
   </head>
-<body bgcolor=999999 onload="javascript:main()">
+<body bgcolor=999999 onload="javascript:loadIt()">
 
 <div class=center>
 
 Music from https://www.bensound.com<br>
 
-<canvas id=canvas width=600 height=700>What?! No Canvas?!</canvas>
+<canvas id=canvas width=600 height=700>What?! No Canvas?!</canvas><br>
+
+<table>
+<tr>
+    <td>Face Image: </td>
+    <td><input id="image-file" type="file" onChange="handleImageUpload()"/></td>
+</tr>
+<tr>
+    <td>Music: </td>
+    <td><input id="music-file" type="file" onchange="handleMusicUpload()"/></td>
+</tr>
+</table>
+<input type="button" value="Go!" onclick="javascript:runIt()">
+<input type="button" value="Stop" onclick="javascript:stopIt()"><br>
 
 
 </div>
