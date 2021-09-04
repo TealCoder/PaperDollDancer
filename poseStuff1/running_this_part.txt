@@ -1,1 +1,4 @@
+This is a little tool extracted from google's teachable machine to record poses.
+
+If run locally this returns local reference errors, but you can get around that with:
 python3 -m http.server 8000
