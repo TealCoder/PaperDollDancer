@@ -79,10 +79,17 @@ function sleep(ms) {
       music.play()
       while (running && music.ended == false)
       {
-        newPose(somePoses[i++]);
-        drawDancer();
+        last_pose = somePoses[i];
+        ++i;
         if (i == somePoses.length) i = 0;
-        await sleep(1333); // I think we are 110BPM, no, maybe 90
+        next_pose = somePoses[i];
+        for (var time = 0; time <= 10; time++)
+        {
+          newPose(interpolatePoses( last_pose, next_pose, time/10.0));
+          drawDancer();
+          //await sleep(133.3); // I think we are 110BPM, no, maybe 90
+          await sleep(26.66); // I think we are 110BPM, no, maybe 90
+        }
       }
       music.pause()
     }
@@ -91,7 +98,43 @@ function sleep(ms) {
     {
       running = false;
     }
-      
+    
+    function drawRectangle(x1, y1, x2, y2, width) {
+      // Calculate the direction vector
+      let dx = x2 - x1;
+      let dy = y2 - y1;
+
+      // Normalize the direction vector
+      let len = Math.sqrt(dx * dx + dy * dy);
+      let nx = dx / len;
+      let ny = dy / len;
+
+      // Calculate the perpendicular vector and scale it
+      let px = -ny * width / 2;
+      let py = nx * width / 2;
+
+      // Calculate the four vertices of the rectangle
+      let ax = x1 + px;
+      let ay = y1 + py;
+      let bx = x1 - px;
+      let by = y1 - py;
+      let cx = x2 - px;
+      let cy = y2 - py;
+      let dx_ = x2 + px; // using dx_ because dx is already defined
+      let dy_ = y2 + py;
+
+      // Draw and fill the rectangle
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(dx_, dy_);
+      ctx.closePath();
+      ctx.fillStyle = "blue";
+      ctx.fill();
+      ctx.stroke();
+    }
+    
     function drawDancer()
     {
       ctx.fillStyle='white';
@@ -102,7 +145,71 @@ function sleep(ms) {
       ctx.lineWidth=5;
       ctx.strokeStyle='black';
 
-      // Head and Spine
+      scale = (ny - hy);
+      
+      // Head and Spine (behind face image)
+      //drawRectangle(hx,hy,nx,ny,scale);
+      //drawRectangle(nx,ny,cx,cy,scale*2);
+      drawRectangle(hx,hy,nx,ny,scale);
+      
+      // Draw torso as the area between shoulders and hips
+      ctx.beginPath();
+      ctx.moveTo(lsx+5, lsy);
+      ctx.lineTo(rsx-5, rsy);
+      ctx.lineTo(rhx-5, rhy);
+      ctx.lineTo(lhx+5, lhy);
+      ctx.closePath();
+      ctx.fillStyle = "blue";
+      ctx.fill();
+      ctx.stroke();
+      
+      image_height = 2 *(ny - hy);
+      image_width = image_height / 2;
+      image_top = hy - image_height / 2;
+      image_left = hx - image_width / 2;
+      ctx.drawImage(faceImage, image_left, image_top, image_width, image_height);
+      
+      drawRectangle(lwx,lwy,lex,ley,scale/3);
+      drawRectangle(lex,ley,lsx,lsy,scale/3);
+      drawRectangle(rsx,rsy,rex,rey,scale/3);
+      drawRectangle(rex,rey,rwx,rwy,scale/3);
+
+      drawRectangle(lax,lay,lkx,lky,scale/2);
+      drawRectangle(lkx,lky,lhx,lhy,scale/2);
+      drawRectangle(rax,ray,rkx,rky,scale/2);
+      drawRectangle(rkx,rky,rhx,rhy,scale/2);
+
+      // Joints
+      //ctx.beginPath(); ctx.arc(lfx+3,lfy+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lwx+3,lwy+3,10,0,2*Math.PI); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lex+3,ley+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lsx+3,lsy+3,3,0,2*Math.PI); ctx.stroke();
+      //ctx.beginPath(); ctx.arc(ltx+3,lty+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lax+3,lay+3,15,0,2*Math.PI); ctx.fill();  ctx.stroke();
+      ctx.beginPath(); ctx.arc(lkx+3,lky+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lhx+3,lhy+3,3,0,2*Math.PI); ctx.stroke();
+      //ctx.beginPath(); ctx.arc(rfx+3,rfy+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rwx+3,rwy+3,10,0,2*Math.PI); ctx.fill();  ctx.stroke();
+      ctx.beginPath(); ctx.arc(rex+3,rey+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rsx+3,rsy+3,3,0,2*Math.PI); ctx.stroke();
+      //ctx.beginPath(); ctx.arc(rtx+3,rty+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rax+3,ray+3,15,0,2*Math.PI); ctx.fill();  ctx.stroke();
+      ctx.beginPath(); ctx.arc(rkx+3,rky+3,3,0,2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rhx+3,rhy+3,3,0,2*Math.PI); ctx.stroke();
+    }
+
+      
+    function drawLineDancer()
+    {
+      ctx.fillStyle='white';
+      ctx.fillRect(0,0,600,700);
+
+      ctx.fillStyle='white';
+
+      ctx.lineWidth=5;
+      ctx.strokeStyle='black';
+
+      // Head and Spine (bhind image)
       ctx.beginPath();
       ctx.moveTo(hx,hy);
       ctx.lineTo(nx,ny);
@@ -171,6 +278,42 @@ function sleep(ms) {
       [lhx,lhy,lkx,lky,lax,lay] = [p[i++],p[i++],p[i++],p[i++],p[i++],p[i++]];
       [rhx,rhy,rkx,rky,rax,ray] = [p[i++],p[i++],p[i++],p[i++],p[i++],p[i++]];
       [nx, ny, cx, cy] = [(rsx+lsx)/2,(rsy+lsy)/2,(rhx+lhx)/2,(rhy+lhy)/2];
+    }
+    
+    // If the S curve leaves gaps at the end, the dude twitches on the beat:
+    //   this is a cool, but weird asthetic.
+    function sCurvePop(t, k = 1) 
+    {
+        /**
+        * Compute the value of the S-curve (sigmoid function) for a given t.
+        * 
+        * @param {number} t - The input value, typically between 0 and 1 for the standard S-curve.
+        * @param {number} k - Steepness of the curve. Default is 1.
+        * 
+        * @return {number} - The value of the S-curve for the given t.
+        */
+        return 1 / (1 + Math.exp(-k * (t - 0.5)));
+    }
+    
+    function sCurve(t) {
+    /**
+     * Compute the value of the normalized cubic Bezier S-curve for a given t.
+     * 
+     * @param {number} t - The input value between 0 and 1.
+     * 
+     * @return {number} - The value of the S-curve for the given t.
+     */
+    return 3 * t * t - 2 * t * t * t;
+    }
+    
+    /* time is 0->1 */
+    // Note, if we reverse the scalar, the dude jumps around and that looks like
+    //   a music video.
+    function interpolatePoses(last_pose, next_pose, time)
+    {
+      let scalar = sCurve(time);
+      return last_pose.map((val, index) => (1-scalar) * val +
+                                          scalar * next_pose[index] );
     }
 
 var somePoses = [
